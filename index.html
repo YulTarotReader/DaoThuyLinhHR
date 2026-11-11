@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Tuyển Dụng HR Freelance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Header Banner -->
+    <header class="bg-indigo-700 text-white py-10 px-6 shadow-md">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-3xl md:text-5xl font-bold mb-3">Cổng Tuyển Dụng HR Freelance</h1>
+            <p class="text-indigo-200 text-base md:text-lg max-w-2xl mx-auto">Danh sách 100+ việc làm cập nhật mới nhất. Xem chi tiết JD và ứng tuyển mượt mà.</p>
+        </div>
+    </header>
+
+    <!-- Search & Filters -->
+    <main class="max-w-6xl mx-auto px-6 -mt-6">
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-8 border border-slate-100">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tìm kiếm</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="searchInput" onkeyup="filterJobs()" placeholder="Nhập tên vị trí, công ty..." class="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Khu vực</label>
+                    <select id="locationFilter" onchange="filterJobs()" class="w-full py-2 px-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Tất cả địa điểm</option>
+                        <option value="HN">Hà Nội (HN)</option>
+                        <option value="HCM">TP. Hồ Chí Minh (HCM)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Trạng thái</label>
+                    <select id="statusFilter" onchange="filterJobs()" class="w-full py-2 px-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="Tuyển gấp">Tuyển gấp</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- LỚP 1: Danh sách các thẻ Job Card -->
+        <div id="jobList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- Dữ liệu từ jobs.json sẽ hiển thị ra đây -->
+        </div>
+    </main>
+
+    <script>
+        // LINK GOOGLE FORM ỨNG TUYỂN DÙNG CHUNG (Thay link Form của bạn vào đây)
+        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/1dFa6eRBtFFc-zkycJ6fw30UUKs_wbBgmDd_SdsNpiNBc/edit';
+
+        let allJobs = [];
+
+        // Đọc dữ liệu từ file jobs.json nằm chung trên GitHub
+        async function fetchJobs() {
+            try {
+                const res = await fetch('./jobs.json');
+                allJobs = await res.json();
+                renderJobs(allJobs);
+            } catch (e) {
+                console.error("Lỗi nạp file jobs.json:", e);
+                document.getElementById('jobList').innerHTML = `
+                    <p class="col-span-full text-center text-red-500 py-8">Không nạp được dữ liệu từ file jobs.json. Vui lòng kiểm tra lại file.</p>
+                `;
+            }
+        }
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobList');
+            if (!jobs || jobs.length === 0) {
+                container.innerHTML = `<p class="col-span-full text-center text-slate-500 py-8">Không tìm thấy công việc phù hợp.</p>`;
+                return;
+            }
+
+            container.innerHTML = jobs.map(j => {
+                const company = j.company || 'Doanh nghiệp';
+                const title = j.title || 'Vị trí Tuyển dụng';
+                const location = j.location || 'Toàn quốc';
+                const exp = j.exp || 'Không yêu cầu';
+                const commission = j.commission || 'Thỏa thuận';
+                const status = j.status || 'Đang tuyển';
+                const jdUrl = (j.jdUrl && j.jdUrl.startsWith('http')) ? j.jdUrl : '#';
+
+                return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition p-5 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-xs font-bold uppercase px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-md">${company}</span>
+                            ${status.toLowerCase().includes('gấp') ? `<span class="text-xs font-semibold px-2 py-0.5 bg-red-100 text-red-600 rounded">Tuyển gấp</span>` : ''}
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 line-clamp-2">${title}</h3>
+                        <div class="space-y-1.5 text-sm text-slate-600 mb-4">
+                            <p><i class="fa-solid fa-location-dot w-5 text-indigo-500"></i> ${location}</p>
+                            <p><i class="fa-solid fa-briefcase w-5 text-indigo-500"></i> Kinh nghiệm: ${exp}</p>
+                            <p><i class="fa-solid fa-sack-dollar w-5 text-emerald-500"></i> Commission: <strong class="text-emerald-600">${commission}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <!-- LỚP 2 & 3: Nút Xem JD (Google Doc) & Nút Ứng tuyển (Google Form) -->
+                    <div class="pt-4 border-t border-slate-100 grid grid-cols-2 gap-2">
+                        ${jdUrl !== '#' ? `
+                            <a href="${jdUrl}" target="_blank" class="block w-full text-center py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition">
+                                Xem JD <i class="fa-solid fa-file-lines text-xs ml-1"></i>
+                            </a>
+                        ` : `
+                            <button disabled class="block w-full text-center py-2 px-2 bg-slate-100 text-slate-400 rounded-lg font-medium text-sm cursor-not-allowed">
+                                Đang cập nhật JD
+                            </button>
+                        `}
+                        <a href="${GOOGLE_FORM_URL}" target="_blank" class="block w-full text-center py-2 px-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition">
+                            Ứng tuyển <i class="fa-solid fa-paper-plane text-xs ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function filterJobs() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const loc = document.getElementById('locationFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = allJobs.filter(j => {
+                const matchSearch = (j.title || '').toLowerCase().includes(search) || (j.company || '').toLowerCase().includes(search);
+                const matchLoc = !loc || (j.location || '').includes(loc);
+                const matchStatus = !status || (j.status || '').includes(status);
+                return matchSearch && matchLoc && matchStatus;
+            });
+
+            renderJobs(filtered);
+        }
+
+        fetchJobs();
+    </script>
+</body>
+</html>
